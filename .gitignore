@@ -1,0 +1,48 @@
+# Environment variables (IMPORTANT - keeps your credentials safe!)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# CSV logs
+*.csv
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Build files
+build/
+dist/
+*.egg-info/
