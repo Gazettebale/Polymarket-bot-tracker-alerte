@@ -183,16 +183,13 @@ logger = logging.getLogger(__name__)
 def send_telegram(message: str) -> bool:
     """Send message to Telegram"""
     try:
-        import urllib3
-        urllib3.disable_warnings()
-        
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
         response = requests.post(url, json={
             "chat_id": TELEGRAM_CHAT_ID,
             "text": message,
             "parse_mode": "HTML",
             "disable_web_page_preview": True
-        }, timeout=30, verify=False)
+        }, timeout=30)
         if response.status_code == 200:
             logger.info("✅ Telegram message sent")
             return True
@@ -423,7 +420,8 @@ def fetch_market_by_slug(slug: str) -> Optional[Dict]:
             markets = response.json()
             return markets[0] if markets else None
         return None
-    except:
+    except (requests.RequestException, ValueError, IndexError, KeyError) as e:
+        logger.warning(f"Error fetching market by slug: {e}")
         return None
 
 
@@ -439,8 +437,8 @@ def parse_prices(market: Dict) -> Dict:
         prices = json.loads(prices_raw) if isinstance(prices_raw, str) else prices_raw
         result["prices"] = [float(p) for p in prices] if prices else []
         result["ok"] = len(result["prices"]) > 0
-    except:
-        pass
+    except (json.JSONDecodeError, ValueError, TypeError) as e:
+        logger.warning(f"Error parsing prices: {e}")
     return result
 
 
@@ -454,7 +452,8 @@ def get_days_to_resolution(market: Dict) -> Optional[int]:
         now = datetime.now(end_date.tzinfo) if end_date.tzinfo else datetime.now()
         days = (end_date - now).days
         return max(0, days)
-    except:
+    except (ValueError, TypeError, AttributeError) as e:
+        logger.warning(f"Error parsing resolution date: {e}")
         return None
 
 
@@ -586,8 +585,7 @@ def check_whale_trades():
         response = requests.get(
             f"{DATA_API_BASE}/trades",
             params={"limit": WHALE_TRADES_FETCH_LIMIT},
-            timeout=30,
-            verify=False
+            timeout=30
         )
         
         if response.status_code != 200:
@@ -812,9 +810,9 @@ def main():
             "chat_id": TELEGRAM_CHAT_ID, 
             "text": startup_message,
             "parse_mode": "HTML"
-        }, timeout=30, verify=False)
-    except:
-        pass
+        }, timeout=30)
+    except (requests.RequestException, Exception) as e:
+        logger.warning(f"Failed to send startup message: {e}")
     
     logger.info(f"🚀 Bot started - scanning every {SCAN_INTERVAL_SECONDS}s")
     
